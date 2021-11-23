@@ -9,7 +9,7 @@
     ],
     "scripts": {
         "build": "yarn lint && tsc",
-        "prepublishOnly": "yarn build",
+        "prepare": "yarn build",
         "lint": "eslint --format stylish --color --report-unused-disable-directives \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix \"src/**/*.{ts,tsx}\"",
         "test": "jest",
@@ -18,9 +18,8 @@
     },
     "respository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/Inshur/nowucit"
     },
-    "homepage": "https://github.com",
     "dependencies": {
         "firebase": "^9.5.0",
         "lodash": "^4.17.21"
