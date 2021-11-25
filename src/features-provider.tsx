@@ -20,6 +20,10 @@ export interface FeaturesProviderOptions {
     overrides?: Feature[];
 }
 
+export const hasFeatureCheck = (name: string, features: Feature[]) => {
+    return !!features.find((item) => item?.name === name && item?.value);
+};
+
 const FeaturesProvider = (props: FeaturesProviderOptions): JSX.Element => {
     const { client, overrides = [], children } = props;
     const [error, setError] = useState<Error | undefined>(undefined);
@@ -48,11 +52,14 @@ const FeaturesProvider = (props: FeaturesProviderOptions): JSX.Element => {
         [features, overrides]
     );
 
+    const hasFeature = (name: string) => hasFeatureCheck(name, allFeatures);
+
     return (
         <FeaturesContext.Provider
             value={{
                 error,
-                features: allFeatures,
+                features,
+                hasFeature,
             }}
         >
             {children}
