@@ -7,13 +7,13 @@ React package that provides the ability to toggle visibility on features and com
 Using [npm](https://npmjs.org/)
 
 ```bash
-npm install nowucit
+npm install @inshur/nowucit
 ```
 
 Using [yarn](https://yarnpkg.com/)
 
 ```bash
-yarn add nowucit
+yarn add @inshur/nowucit
 ```
 
 ## Getting Started
@@ -61,7 +61,7 @@ import App from './App';
 
 const config = {...};
 const client = createFireBaseClient(client);
-const overrides = [{ name: 'slider', value: false, name: 'tabs', value: true }];
+const overrides = [{ name: 'slider', value: false }, { name: 'tabs', value: true }];
 
 ReactDOM.render(
     <FeaturesProvider client={client} overrides={overrides}>
@@ -82,17 +82,19 @@ import React from 'react';
 import { Feature } from 'nowucit';
 
 const App = () => (
-  <Feature name='slider'>
-    <div>Slider feature enabled</div>
-  </Feature>
+  <>
+    <Feature name='slider'>
+      <div>Slider feature enabled</div>
+    </Feature>
 
-  <Feature name='tabs' render={(isEnabled) => isEnabled ?
-    <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>} />
+    <Feature name='tabs' render={(isEnabled) => isEnabled ?
+      <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>} />
 
-  <Feature name='tabs'>
-    {(isEnabled) => isEnabled ?
-      <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>}
-  </Feature>
+    <Feature name='tabs'>
+      {(isEnabled) => isEnabled ?
+        <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>}
+    </Feature>
+  </>
 );
 ```
 
