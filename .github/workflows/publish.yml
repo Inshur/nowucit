@@ -23,6 +23,12 @@ jobs:
           git config --global user.email "ci@inshur.com"
           git config --global user.name "ci"
 
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install Packages
         run: yarn install
 
