@@ -7,13 +7,13 @@ React package that provides the ability to toggle visibility on features and com
 Using [npm](https://npmjs.org/)
 
 ```bash
-npm install @inshur/nowucit
+npm install nowucit
 ```
 
 Using [yarn](https://yarnpkg.com/)
 
 ```bash
-yarn add @inshur/nowucit
+yarn add nowucit
 ```
 
 ## Getting Started
@@ -82,19 +82,20 @@ import React from 'react';
 import { Feature } from 'nowucit';
 
 const App = () => (
-  <>
-    <Feature name='slider'>
-      <div>Slider feature enabled</div>
-    </Feature>
+    <>
+        <Feature name="slider">
+            <div>Slider feature enabled</div>
+        </Feature>
 
-    <Feature name='tabs' render={(isEnabled) => isEnabled ?
-      <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>} />
+        <Feature
+            name="tabs"
+            render={(isEnabled) => (isEnabled ? <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>)}
+        />
 
-    <Feature name='tabs'>
-      {(isEnabled) => isEnabled ?
-        <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>}
-    </Feature>
-  </>
+        <Feature name="tabs">
+            {(isEnabled) => (isEnabled ? <div>Tabs feature enabled</div> : <div>Tabs feature disabled</div>)}
+        </Feature>
+    </>
 );
 ```
 
