@@ -17,6 +17,11 @@ jobs:
         with:
           node-version: 16
           registry-url: 'https://registry.npmjs.org/'
+      
+      - name: Setup GIT
+        run: |
+          git config --global user.email "ci@inshur.com"
+          git config --global user.name "ci"
 
       - name: Install Packages
         run: yarn install
