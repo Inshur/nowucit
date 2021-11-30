@@ -1,0 +1,90 @@
+name: Publish Private
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  Publish:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDSDK_PYTHON: python3
+      CLOUDSDK_PYTHON_SITEPACKAGES: 1
+      REPO_PROJECT: inshur-prod0-repo0
+      VAULT_ROLE: repo
+      VAULT_ADDR: https://vault.infra.inshur.com
+      VAULT_VERSION: 1.2.3
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Vault
+        run: |
+          curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
+            > /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
+            && sudo unzip -d /bin /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
+            && rm -f vault_${VAULT_VERSION}_linux_amd64.zip
+      - name: Versions
+        run: |
+          cd $GITHUB_WORKSPACE
+          python --version
+          vault version
+          gcloud version
+      - name: Vault - Configure repo credentials
+        run: |
+          echo "::add-mask::${{ secrets.VAULT_USER_PASS_REPO }}"
+          export VAULT_TOKEN=$(vault login -method=userpass \
+            username=repo \
+            password='${{ secrets.VAULT_USER_PASS_REPO }}' --format=json \
+            | jq -r '.auth.client_token')
+          VAULT_LEASE=$(vault read gcp_$REPO_PROJECT/key/repo --format=json)
+          PRIVATE_KEY_DATA=$(echo $VAULT_LEASE | jq -r .data.private_key_data -r )
+          echo "::add-mask::${VAULT_TOKEN}"
+          echo "VAULT_TOKEN=${VAULT_TOKEN}" >> $GITHUB_ENV
+          echo "VAULT_LEASE_ID=$(echo $VAULT_LEASE | jq -r .lease_id)" >> $GITHUB_ENV
+          echo "SERVICE_ACCOUNT_KEY=$(echo $PRIVATE_KEY_DATA)" >> $GITHUB_ENV
+          echo "SERVICE_ACCOUNT_EMAIL=$(echo $PRIVATE_KEY_DATA | base64 -d | jq -r .client_email)" >> $GITHUB_ENV
+      - name: Extract Tag
+        id: get_tag_name
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - name: Configure GCP Service Account
+        run: |
+          echo $SERVICE_ACCOUNT_KEY | base64 -d > service_account_key.json
+          gcloud --quiet auth activate-service-account $SERVICE_ACCOUNT_EMAIL \
+          --key-file service_account_key.json
+          gcloud config list
+          gcloud config set project $REPO_PROJECT
+          gcloud artifacts print-settings npm --project=$REPO_PROJECT \
+          --repository=npm --location=europe --scope=@inshur --json-key=service_account_key.json > .npmrc
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish
+        run: |
+          cp package.json dist
+          cp .npmrc dist
+          cd dist
+          npm config set @inshur:registry https://europe-npm.pkg.dev/inshur-prod0-repo0/npm/
+          npm version --commit-hooks false --git-tag-version false ${{ steps.get_tag_name.outputs.VERSION }}
+          npm publish
+      - name: Vault - Revoke Repo Credentials
+        if: always()
+        run: |
+          vault lease revoke $VAULT_LEASE_ID
