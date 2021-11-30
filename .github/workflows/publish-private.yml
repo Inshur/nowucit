@@ -73,14 +73,8 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Build
-        run: yarn build
-
       - name: Publish
         run: |
-          cp package.json dist
-          cp .npmrc dist
-          cd dist
           npm config set @inshur:registry https://europe-npm.pkg.dev/inshur-prod0-repo0/npm/
           npm version --commit-hooks false --git-tag-version false ${{ steps.get_tag_name.outputs.VERSION }}
           npm publish
